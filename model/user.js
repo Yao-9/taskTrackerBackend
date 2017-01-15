@@ -1,8 +1,38 @@
 var bcrypt = require('bcrypt-nodejs');
 var AWS = require('aws-sdk');
+
 AWS.config.update({
     region: "us-west-2"
 });
+//TODO: Use configuration file to determine region
+
+
+function UserNameAlreadyTakenError(message) {
+  this.name = "UserNameAlreadyTakenError";
+  this.meesage = message
+}
+
+UserNameAlreadyTakenError.prototype = new Error()
+
+function putUser(docClient, user, callback) {
+  var putParams = {
+    TableName:"User",
+    Item: {
+      "username": this.username,
+      "password": bcrypt.hashSync(this.password),
+      "university": this.university
+    }
+  };
+
+  docClient.put(putParams, function(err, data) {
+    if (err) {
+      console.log(err.stack);
+      callback(err);
+    } else {
+      callback();
+    }
+  });
+}
 
 var docClient = new AWS.DynamoDB.DocumentClient();
 
@@ -13,24 +43,29 @@ function User(username, password, university) {
 }
 
 User.prototype.save = function (callback) {
-  var params = {
-    TableName:"User",
-    Item: {
-      "username": this.username,
-      "password": bcrypt.hashSync(this.password),
-      "university": this.university
+  var getParam = {
+    TableName: "User",
+    Key: {
+      "username": this.username
     }
   };
 
-  docClient.put(params, function(err, data) {
+  //TODO: User findByUsername to find user
+  docClient.get(getParam, function(err, data) {
     if (err) {
       console.log(err.stack);
       callback(err);
+      return;
     } else {
-      callback();
+      if (Object.keys(data).length !== 0) {
+        callback(new UserNameAlreadyTakenError("Username is already been taken"));
+        return;
+      } else {
+        putUser(docClient, this, callback);
+      }
     }
-  })
-};
+  });
+}
 
 User.findByUsername = function(username, callback) {
   var params = {
@@ -60,3 +95,4 @@ User.prototype.verifyPassword = function(password, callback) {
 }
 
 module.exports = User;
+module.exposts = UserNameAlreadyTakenError
