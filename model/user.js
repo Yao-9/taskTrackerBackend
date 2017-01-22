@@ -9,7 +9,7 @@ AWS.config.update({
 
 function UserNameAlreadyTakenError(message) {
   this.name = "UserNameAlreadyTakenError";
-  this.meesage = message
+  this.message = message
 }
 
 UserNameAlreadyTakenError.prototype = new Error()
@@ -50,8 +50,7 @@ User.prototype.save = function (callback) {
     }
   };
 
-  //TODO: User findByUsername to find user
-  docClient.get(getParam, function(err, data) {
+  User.findByUsername(this.username, function(err, data) {
     if (err) {
       console.log(err.stack);
       callback(err);
@@ -64,7 +63,7 @@ User.prototype.save = function (callback) {
         putUser(docClient, this, callback);
       }
     }
-  });
+  })
 }
 
 User.findByUsername = function(username, callback) {
