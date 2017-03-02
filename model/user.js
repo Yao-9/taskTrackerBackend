@@ -73,7 +73,7 @@ User.findByUsername = function(username, callback) {
       "username": username
     }
   };
-
+  
   docClient.get(params, function(err, data) {
     if (err) {
       console.error("Query error:", JSON.stringify(err, null, 2))

@@ -7,3 +7,10 @@ exports.postUser = function(req, res) {
     res.json({ message: "new user is added"});
   });
 }
+
+exports.getUser = function(req, res) {
+  var user = User.findByUsername(req.params.username, function(err, user) {
+    if (err) return res.status(500).send(err)
+    res.json(user)
+  });
+}
